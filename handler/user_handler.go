@@ -39,3 +39,25 @@ func (uh *userHandler) RegisterUser(ctx *gin.Context) {
 	response := helper.JSONResponse("register success", "success", http.StatusOK, formatData)
 	ctx.JSON(http.StatusOK, response)
 }
+
+func (uh *userHandler) Login(ctx *gin.Context) {
+	request := request.LoginRequest{}
+	err := ctx.ShouldBindJSON(&request)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		response := helper.JSONResponse("bad request", "error", http.StatusBadRequest, gin.H{"errors": errors})
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	user, err := uh.usrSvc.Login(request)
+	if err != nil {
+		response := helper.JSONResponse("login failed", "error", http.StatusInternalServerError, gin.H{"errors": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	formatData := response.FormatUserResponse(*user, "initokenabalabal")
+	response := helper.JSONResponse("login success", "success", http.StatusOK, formatData)
+	ctx.JSON(http.StatusOK, response)
+}

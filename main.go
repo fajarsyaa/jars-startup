@@ -26,6 +26,7 @@ func main() {
 	app := gin.Default()
 	prefix := app.Group("api/v1")
 	prefix.POST("/user", handlerUser.RegisterUser)
+	prefix.POST("/login", handlerUser.Login)
 
 	app.Run()
 }

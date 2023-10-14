@@ -4,6 +4,7 @@ import (
 	"bwu-startup/model"
 	"bwu-startup/model/request"
 	"bwu-startup/repository"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,6 +13,7 @@ import (
 
 type UserService interface {
 	UserRegister(request request.RegisterUserRequest) (*model.User, error)
+	Login(request request.LoginRequest) (*model.User, error)
 }
 
 type userService struct {
@@ -43,4 +45,24 @@ func (us *userService) UserRegister(request request.RegisterUserRequest) (*model
 	}
 
 	return NewUser, nil
+}
+
+func (us *userService) Login(request request.LoginRequest) (*model.User, error) {
+	email := request.Email
+	password := request.Password
+
+	user, err := us.usrRepo.FindUserByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("User not found")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
