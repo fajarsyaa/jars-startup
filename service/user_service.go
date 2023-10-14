@@ -14,6 +14,7 @@ import (
 type UserService interface {
 	UserRegister(request request.RegisterUserRequest) (*model.User, error)
 	Login(request request.LoginRequest) (*model.User, error)
+	CheckAvailableEmail(request request.AvailableEmailRequest) (bool, error)
 }
 
 type userService struct {
@@ -55,7 +56,7 @@ func (us *userService) Login(request request.LoginRequest) (*model.User, error) 
 	if err != nil {
 		return nil, err
 	}
-	if user == nil {
+	if user.ID == "" {
 		return nil, errors.New("User not found")
 	}
 
@@ -65,4 +66,18 @@ func (us *userService) Login(request request.LoginRequest) (*model.User, error) 
 	}
 
 	return user, nil
+}
+
+func (us *userService) CheckAvailableEmail(request request.AvailableEmailRequest) (bool, error) {
+	email := request.Email
+	user, err := us.usrRepo.FindUserByEmail(email)
+	if err != nil {
+		return false, err
+	}
+
+	if user.ID != "" {
+		return false, nil
+	}
+
+	return true, nil
 }

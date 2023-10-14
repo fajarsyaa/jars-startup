@@ -24,9 +24,10 @@ func main() {
 	handlerUser := handler.NewUserHandler(svcUser)
 
 	app := gin.Default()
-	prefix := app.Group("api/v1")
-	prefix.POST("/user", handlerUser.RegisterUser)
-	prefix.POST("/login", handlerUser.Login)
+	UrlPrefix := app.Group("api/v1")
+	UrlPrefix.POST("/user", handlerUser.RegisterUser)
+	UrlPrefix.POST("/login", handlerUser.Login)
+	UrlPrefix.POST("/email_check", handlerUser.CheckAvailableEmail)
 
 	app.Run()
 }
