@@ -88,3 +88,34 @@ func (uh *userHandler) CheckAvailableEmail(ctx *gin.Context) {
 	response := helper.JSONResponse("email is available", "success", http.StatusOK, gin.H{"is_available": isAvailableEmail})
 	ctx.JSON(http.StatusOK, response)
 }
+
+func (uh *userHandler) UploadAvatar(ctx *gin.Context) {
+	file, err := ctx.FormFile("avatar")
+	if err != nil {
+		response := helper.JSONResponse("bad request", "error", http.StatusBadRequest, gin.H{"errors": err.Error()})
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	pathImage := "public/images/" + file.Filename
+
+	err = ctx.SaveUploadedFile(file, pathImage)
+	if err != nil {
+		response := helper.JSONResponse("failed to upload image", "error", http.StatusInternalServerError, gin.H{"is_uploaded": false})
+		ctx.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	_, err = uh.usrSvc.SaveAvatar("0e36775c-3641-4802-84e5-65a68562d4da", pathImage)
+
+	err = ctx.SaveUploadedFile(file, pathImage)
+	if err != nil {
+		response := helper.JSONResponse("failed to upload image", "error", http.StatusInternalServerError, gin.H{"is_uploaded": false})
+		ctx.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	response := helper.JSONResponse("success upload image", "success ", http.StatusOK, gin.H{"is_uploaded": true})
+	ctx.JSON(http.StatusOK, response)
+	return
+}

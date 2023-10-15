@@ -28,6 +28,7 @@ func main() {
 	UrlPrefix.POST("/user", handlerUser.RegisterUser)
 	UrlPrefix.POST("/login", handlerUser.Login)
 	UrlPrefix.POST("/email_check", handlerUser.CheckAvailableEmail)
+	UrlPrefix.POST("/avatar", handlerUser.UploadAvatar)
 
 	app.Run()
 }

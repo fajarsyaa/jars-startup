@@ -15,6 +15,7 @@ type UserService interface {
 	UserRegister(request request.RegisterUserRequest) (*model.User, error)
 	Login(request request.LoginRequest) (*model.User, error)
 	CheckAvailableEmail(request request.AvailableEmailRequest) (bool, error)
+	SaveAvatar(Id, filepath string) (*model.User, error)
 }
 
 type userService struct {
@@ -40,7 +41,7 @@ func (us *userService) UserRegister(request request.RegisterUserRequest) (*model
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	NewUser, err := us.usrRepo.Save(&user)
+	NewUser, err := us.usrRepo.Create(&user)
 	if err != nil {
 		return nil, err
 	}
@@ -80,4 +81,20 @@ func (us *userService) CheckAvailableEmail(request request.AvailableEmailRequest
 	}
 
 	return true, nil
+}
+
+func (us *userService) SaveAvatar(Id, filepath string) (*model.User, error) {
+	user, err := us.usrRepo.FindUserById(Id)
+	if err != nil {
+		return nil, err
+	}
+
+	user.AvatarFileName = filepath
+
+	UpdatedUser, err := us.usrRepo.Update(*user)
+	if err != nil {
+		return nil, err
+	}
+
+	return UpdatedUser, nil
 }
