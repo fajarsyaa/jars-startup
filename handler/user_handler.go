@@ -5,6 +5,7 @@ import (
 	"bwu-startup/model/request"
 	"bwu-startup/model/response"
 	"bwu-startup/service"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -28,14 +29,14 @@ func (uh *userHandler) RegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	data, err := uh.usrSvc.UserRegister(request)
+	newUser, token, err := uh.usrSvc.UserRegister(request)
 	if err != nil {
 		response := helper.JSONResponse("register failed", "error", http.StatusInternalServerError, nil)
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	formatData := response.FormatUserResponse(*data, "initokenabalabal")
+	formatData := response.FormatUserResponse(*newUser, *token)
 	response := helper.JSONResponse("register success", "success", http.StatusOK, formatData)
 	ctx.JSON(http.StatusOK, response)
 }
@@ -50,14 +51,14 @@ func (uh *userHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := uh.usrSvc.Login(request)
+	logginedUser, token, err := uh.usrSvc.Login(request)
 	if err != nil {
 		response := helper.JSONResponse("login failed", "error", http.StatusInternalServerError, gin.H{"errors": err.Error()})
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	formatData := response.FormatUserResponse(*user, "initokenabalabal")
+	formatData := response.FormatUserResponse(*logginedUser, *token)
 	response := helper.JSONResponse("login success", "success", http.StatusOK, formatData)
 	ctx.JSON(http.StatusOK, response)
 }
@@ -97,7 +98,8 @@ func (uh *userHandler) UploadAvatar(ctx *gin.Context) {
 		return
 	}
 
-	pathImage := "public/images/" + file.Filename
+	idUser := "0e36775c-3641-4802-84e5-65a68562d4da"
+	pathImage := fmt.Sprintf("public/images/%s", idUser)
 
 	err = ctx.SaveUploadedFile(file, pathImage)
 	if err != nil {
@@ -106,7 +108,7 @@ func (uh *userHandler) UploadAvatar(ctx *gin.Context) {
 		return
 	}
 
-	_, err = uh.usrSvc.SaveAvatar("0e36775c-3641-4802-84e5-65a68562d4da", pathImage)
+	_, err = uh.usrSvc.SaveAvatar(idUser, pathImage)
 
 	err = ctx.SaveUploadedFile(file, pathImage)
 	if err != nil {

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bwu-startup/helper/jwt"
 	"bwu-startup/model"
 	"bwu-startup/model/request"
 	"bwu-startup/repository"
@@ -12,28 +13,29 @@ import (
 )
 
 type UserService interface {
-	UserRegister(request request.RegisterUserRequest) (*model.User, error)
-	Login(request request.LoginRequest) (*model.User, error)
+	UserRegister(request request.RegisterUserRequest) (*model.User, *string, error)
+	Login(request request.LoginRequest) (*model.User, *string, error)
 	CheckAvailableEmail(request request.AvailableEmailRequest) (bool, error)
 	SaveAvatar(Id, filepath string) (*model.User, error)
 }
 
 type userService struct {
-	usrRepo repository.UserRepository
+	usrRepo  repository.UserRepository
+	jwtToken jwt.JwtToken
 }
 
-func NewUserService(userRepo repository.UserRepository) *userService {
-	return &userService{usrRepo: userRepo}
+func NewUserService(userRepo repository.UserRepository, jwtToken jwt.JwtToken) *userService {
+	return &userService{usrRepo: userRepo, jwtToken: jwtToken}
 }
 
-func (us *userService) UserRegister(request request.RegisterUserRequest) (*model.User, error) {
+func (us *userService) UserRegister(request request.RegisterUserRequest) (*model.User, *string, error) {
 	user := model.User{}
 	user.Name = request.Name
 	user.Email = request.Email
 	user.Occupation = request.Occupation
 	passwordhash, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	user.PasswordHash = string(passwordhash)
 	user.ID = uuid.New().String()
@@ -41,32 +43,42 @@ func (us *userService) UserRegister(request request.RegisterUserRequest) (*model
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	NewUser, err := us.usrRepo.Create(&user)
+	token, err := us.jwtToken.GenerateToken(user.ID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return NewUser, nil
+	NewUser, err := us.usrRepo.Create(&user)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return NewUser, token, nil
 }
 
-func (us *userService) Login(request request.LoginRequest) (*model.User, error) {
+func (us *userService) Login(request request.LoginRequest) (*model.User, *string, error) {
 	email := request.Email
 	password := request.Password
 
-	user, err := us.usrRepo.FindUserByEmail(email)
+	logginedUser, err := us.usrRepo.FindUserByEmail(email)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	if user.ID == "" {
-		return nil, errors.New("User not found")
+	if logginedUser.ID == "" {
+		return nil, nil, errors.New("User not found")
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(logginedUser.PasswordHash), []byte(password))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return user, nil
+	token, err := us.jwtToken.GenerateToken(logginedUser.ID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return logginedUser, token, nil
 }
 
 func (us *userService) CheckAvailableEmail(request request.AvailableEmailRequest) (bool, error) {

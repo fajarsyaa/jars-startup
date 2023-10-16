@@ -2,6 +2,7 @@ package main
 
 import (
 	"bwu-startup/handler"
+	"bwu-startup/helper/jwt"
 	"bwu-startup/repository"
 	"bwu-startup/service"
 	"log"
@@ -19,8 +20,10 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	jwtToken := jwt.NewJwtToken()
+
 	repoUser := repository.NewUserRepository(db)
-	svcUser := service.NewUserService(repoUser)
+	svcUser := service.NewUserService(repoUser, jwtToken)
 	handlerUser := handler.NewUserHandler(svcUser)
 
 	app := gin.Default()
