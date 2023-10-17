@@ -1,7 +1,7 @@
 package service
 
 import (
-	"bwu-startup/helper/jwt"
+	"bwu-startup/helper/jwt_token"
 	"bwu-startup/model"
 	"bwu-startup/model/request"
 	"bwu-startup/repository"
@@ -17,14 +17,15 @@ type UserService interface {
 	Login(request request.LoginRequest) (*model.User, *string, error)
 	CheckAvailableEmail(request request.AvailableEmailRequest) (bool, error)
 	SaveAvatar(Id, filepath string) (*model.User, error)
+	GetUserById(Id string) (*model.User, error)
 }
 
 type userService struct {
 	usrRepo  repository.UserRepository
-	jwtToken jwt.JwtToken
+	jwtToken jwt_token.JwtToken
 }
 
-func NewUserService(userRepo repository.UserRepository, jwtToken jwt.JwtToken) *userService {
+func NewUserService(userRepo repository.UserRepository, jwtToken jwt_token.JwtToken) *userService {
 	return &userService{usrRepo: userRepo, jwtToken: jwtToken}
 }
 
@@ -109,4 +110,17 @@ func (us *userService) SaveAvatar(Id, filepath string) (*model.User, error) {
 	}
 
 	return UpdatedUser, nil
+}
+
+func (us *userService) GetUserById(Id string) (*model.User, error) {
+	user, err := us.usrRepo.FindUserById(Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.ID == "" {
+		return nil, errors.New("user with that id is not found")
+	}
+
+	return user, nil
 }

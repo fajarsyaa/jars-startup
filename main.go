@@ -2,7 +2,8 @@ package main
 
 import (
 	"bwu-startup/handler"
-	"bwu-startup/helper/jwt"
+	"bwu-startup/helper/jwt_token"
+	"bwu-startup/middleware"
 	"bwu-startup/repository"
 	"bwu-startup/service"
 	"log"
@@ -20,7 +21,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	jwtToken := jwt.NewJwtToken()
+	jwtToken := jwt_token.NewJwtToken()
 
 	repoUser := repository.NewUserRepository(db)
 	svcUser := service.NewUserService(repoUser, jwtToken)
@@ -31,7 +32,7 @@ func main() {
 	UrlPrefix.POST("/user", handlerUser.RegisterUser)
 	UrlPrefix.POST("/login", handlerUser.Login)
 	UrlPrefix.POST("/email_check", handlerUser.CheckAvailableEmail)
-	UrlPrefix.POST("/avatar", handlerUser.UploadAvatar)
+	UrlPrefix.POST("/avatar", middleware.Authorization(jwtToken, svcUser), handlerUser.UploadAvatar)
 
 	app.Run()
 }

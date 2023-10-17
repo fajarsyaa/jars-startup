@@ -1,4 +1,4 @@
-package jwt
+package jwt_token
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 
 type JwtToken interface {
 	GenerateToken(id string) (*string, error)
+	ValidateToken(encodedToken string) (*jwt.Token, error)
 }
 
 type jwtToken struct {

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bwu-startup/helper"
+	"bwu-startup/model"
 	"bwu-startup/model/request"
 	"bwu-startup/model/response"
 	"bwu-startup/service"
@@ -98,7 +99,10 @@ func (uh *userHandler) UploadAvatar(ctx *gin.Context) {
 		return
 	}
 
-	idUser := "0e36775c-3641-4802-84e5-65a68562d4da"
+	// currentUser from middleware authentication
+	getCurrentUser := ctx.MustGet("currentUser").(*model.User)
+	idUser := getCurrentUser.ID
+
 	pathImage := fmt.Sprintf("public/images/%s", idUser)
 
 	err = ctx.SaveUploadedFile(file, pathImage)
