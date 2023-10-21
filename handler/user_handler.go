@@ -8,6 +8,7 @@ import (
 	"bwu-startup/service"
 	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
@@ -103,7 +104,7 @@ func (uh *userHandler) UploadAvatar(ctx *gin.Context) {
 	getCurrentUser := ctx.MustGet("currentUser").(*model.User)
 	idUser := getCurrentUser.ID
 
-	pathImage := fmt.Sprintf("public/images/%s", idUser)
+	pathImage := fmt.Sprintf("public/images/%s.%s", idUser, filepath.Ext(file.Filename))
 
 	err = ctx.SaveUploadedFile(file, pathImage)
 	if err != nil {
