@@ -9,6 +9,7 @@ import (
 type CampaignRepository interface {
 	FindAll() ([]model.Campaign, error)
 	FindByUserID(userId string) ([]model.Campaign, error)
+	FindById(Id string) (*model.Campaign, error)
 }
 
 type campaignRepository struct {
@@ -22,7 +23,7 @@ func NewCampaignRepository(db *gorm.DB) *campaignRepository {
 func (cr *campaignRepository) FindAll() ([]model.Campaign, error) {
 	var campaigns []model.Campaign
 
-	// preload("dari field struct","kondisi dari field di db")
+	// preload("dari field di struct","kondisi dari field di db")
 	err := cr.db.Preload("CampaignImages", "campaign_images.is_primary = true").Find(&campaigns).Error
 	if err != nil {
 		return nil, err
@@ -34,11 +35,22 @@ func (cr *campaignRepository) FindAll() ([]model.Campaign, error) {
 func (cr *campaignRepository) FindByUserID(userId string) ([]model.Campaign, error) {
 	var campaigns []model.Campaign
 
-	// preload("dari field struct","kondisi dari field di db")
+	// preload("dari field di struct","kondisi dari field di db")
 	err := cr.db.Where("user_id = ?", userId).Preload("CampaignImages", "campaign_images.is_primary = true").Find(&campaigns).Error
 	if err != nil {
 		return nil, err
 	}
 
 	return campaigns, nil
+}
+
+func (cr *campaignRepository) FindById(Id string) (*model.Campaign, error) {
+	var campaign model.Campaign
+	// preload("dari field di struct")
+	err := cr.db.Where("id = ?", Id).Preload("User").Preload("CampaignImages").Find(&campaign).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &campaign, nil
 }

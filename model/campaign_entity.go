@@ -15,6 +15,7 @@ type Campaign struct {
 	CurrentAmount    int
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+	User             User
 	CampaignImages   []CampaignImage
 }
 

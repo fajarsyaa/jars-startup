@@ -2,11 +2,13 @@ package service
 
 import (
 	"bwu-startup/model"
+	"bwu-startup/model/request"
 	"bwu-startup/repository"
 )
 
 type CampaignService interface {
 	GetCampaigns(userID string) ([]model.Campaign, error)
+	GetCampaignDetailById(request request.GetCampaignDetailRequest) (*model.Campaign, error)
 }
 
 type campaignService struct {
@@ -33,4 +35,13 @@ func (cs *campaignService) GetCampaigns(userID string) ([]model.Campaign, error)
 	}
 
 	return campaigns, nil
+}
+
+func (cs *campaignService) GetCampaignDetailById(request request.GetCampaignDetailRequest) (*model.Campaign, error) {
+	campaign, err := cs.campaignRepo.FindById(request.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return campaign, nil
 }

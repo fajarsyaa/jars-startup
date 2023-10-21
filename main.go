@@ -43,6 +43,7 @@ func main() {
 	UrlPrefix.POST("/email_check", handlerUser.CheckAvailableEmail)
 	UrlPrefix.POST("/avatar", middleware.Authorization(jwtToken, svcUser), handlerUser.UploadAvatar)
 	UrlPrefix.GET("/campaigns", handlerCampaign.GetCampaigns)
+	UrlPrefix.GET("/campaigns/:id", handlerCampaign.GetCampaignDetail)
 
 	app.Run()
 }
