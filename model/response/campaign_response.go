@@ -16,7 +16,7 @@ type campaignFormatter struct {
 	CurrentAmount    int    `json:"current_amount"`
 }
 
-func formatCampaignResponse(campaign model.Campaign) campaignFormatter {
+func FormatCampaignResponse(campaign model.Campaign) campaignFormatter {
 	responseFormatter := campaignFormatter{}
 	responseFormatter.ID = campaign.ID
 	responseFormatter.UserId = campaign.UserId
@@ -38,7 +38,7 @@ func FormatCampaignsResponse(campaigns []model.Campaign) []campaignFormatter {
 	formattedCampaigns := []campaignFormatter{}
 
 	for _, campaign := range campaigns {
-		campaignFormatter := formatCampaignResponse(campaign)
+		campaignFormatter := FormatCampaignResponse(campaign)
 		formattedCampaigns = append(formattedCampaigns, campaignFormatter)
 	}
 

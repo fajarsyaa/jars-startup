@@ -10,6 +10,7 @@ type CampaignRepository interface {
 	FindAll() ([]model.Campaign, error)
 	FindByUserID(userId string) ([]model.Campaign, error)
 	FindById(Id string) (*model.Campaign, error)
+	Create(campaign model.Campaign) (*model.Campaign, error)
 }
 
 type campaignRepository struct {
@@ -48,6 +49,15 @@ func (cr *campaignRepository) FindById(Id string) (*model.Campaign, error) {
 	var campaign model.Campaign
 	// preload("dari field di struct")
 	err := cr.db.Where("id = ?", Id).Preload("User").Preload("CampaignImages").Find(&campaign).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &campaign, nil
+}
+
+func (cr *campaignRepository) Create(campaign model.Campaign) (*model.Campaign, error) {
+	err := cr.db.Create(&campaign).Error
 	if err != nil {
 		return nil, err
 	}

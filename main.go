@@ -44,6 +44,7 @@ func main() {
 	UrlPrefix.POST("/avatar", middleware.Authorization(jwtToken, svcUser), handlerUser.UploadAvatar)
 	UrlPrefix.GET("/campaigns", handlerCampaign.GetCampaigns)
 	UrlPrefix.GET("/campaigns/:id", handlerCampaign.GetCampaignDetail)
+	UrlPrefix.POST("/campaign", middleware.Authorization(jwtToken, svcUser), handlerCampaign.CreateCampaign)
 
 	app.Run()
 }
