@@ -4,6 +4,7 @@ import (
 	"bwu-startup/model"
 	"bwu-startup/model/request"
 	"bwu-startup/repository"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ type CampaignService interface {
 	GetCampaigns(userID string) ([]model.Campaign, error)
 	GetCampaignDetailById(request request.GetCampaignDetailRequest) (*model.Campaign, error)
 	CreateCampaign(request request.CreteaCampaingRequest) (*model.Campaign, error)
+	UpdateCampaign(ID request.GetCampaignDetailRequest, request request.CreteaCampaingRequest) (*model.Campaign, error)
 }
 
 type campaignService struct {
@@ -75,4 +77,29 @@ func (cs *campaignService) CreateCampaign(request request.CreteaCampaingRequest)
 	}
 
 	return newCampaign, nil
+}
+
+func (cs *campaignService) UpdateCampaign(ID request.GetCampaignDetailRequest, request request.CreteaCampaingRequest) (*model.Campaign, error) {
+	campaign, err := cs.campaignRepo.FindById(ID.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if campaign.UserId != request.User.ID {
+		return nil, errors.New("you not own this campaign")
+	}
+
+	campaign.Name = request.Name
+	campaign.ShortDescription = request.ShortDescription
+	campaign.Description = request.Description
+	campaign.Perks = request.Perks
+	campaign.GoalAmount = request.GoalAmount
+	campaign.UpdatedAt = time.Now()
+
+	updatedCampaign, err := cs.campaignRepo.Update(*campaign)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedCampaign, nil
 }

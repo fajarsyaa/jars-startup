@@ -80,3 +80,37 @@ func (ch *campaignHandler) CreateCampaign(ctx *gin.Context) {
 	response := helper.JSONResponse("success create campaign", "success", http.StatusOK, response.FormatCampaignResponse(*newCampaign))
 	ctx.JSON(http.StatusOK, response)
 }
+
+func (ch *campaignHandler) UpdateCampaign(ctx *gin.Context) {
+	requestId := request.GetCampaignDetailRequest{}
+	err := ctx.ShouldBindUri(&requestId)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		response := helper.JSONResponse("bad request", "error", http.StatusBadRequest, gin.H{"errors": errors})
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	requestForm := request.CreteaCampaingRequest{}
+	err = ctx.ShouldBindJSON(&requestForm)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		response := helper.JSONResponse("bad request", "error", http.StatusBadRequest, gin.H{"errors": errors})
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	// currentUser from middleware authentication
+	getCurrentUser := ctx.MustGet("currentUser").(*model.User)
+	requestForm.User = *getCurrentUser
+
+	updatedCampaign, err := ch.campaignSvc.UpdateCampaign(requestId, requestForm)
+	if err != nil {
+		response := helper.JSONResponse("failed update campaign", "error", http.StatusInternalServerError, gin.H{"errors": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	response := helper.JSONResponse("success update campaign", "success", http.StatusOK, response.FormatCampaignResponse(*updatedCampaign))
+	ctx.JSON(http.StatusOK, response)
+}
