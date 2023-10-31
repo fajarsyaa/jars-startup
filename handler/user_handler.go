@@ -104,7 +104,7 @@ func (uh *userHandler) UploadAvatar(ctx *gin.Context) {
 	getCurrentUser := ctx.MustGet("currentUser").(*model.User)
 	idUser := getCurrentUser.ID
 
-	pathImage := fmt.Sprintf("public/images/%s.%s", idUser, filepath.Ext(file.Filename))
+	pathImage := fmt.Sprintf("public/images/avatar/%s.%s", idUser, filepath.Ext(file.Filename))
 
 	err = ctx.SaveUploadedFile(file, pathImage)
 	if err != nil {
@@ -114,8 +114,6 @@ func (uh *userHandler) UploadAvatar(ctx *gin.Context) {
 	}
 
 	_, err = uh.usrSvc.SaveAvatar(idUser, pathImage)
-
-	err = ctx.SaveUploadedFile(file, pathImage)
 	if err != nil {
 		response := helper.JSONResponse("failed to upload image", "error", http.StatusInternalServerError, gin.H{"is_uploaded": false})
 		ctx.JSON(http.StatusInternalServerError, response)

@@ -6,7 +6,10 @@ import (
 	"bwu-startup/model/request"
 	"bwu-startup/model/response"
 	"bwu-startup/service"
+	"fmt"
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -113,4 +116,45 @@ func (ch *campaignHandler) UpdateCampaign(ctx *gin.Context) {
 
 	response := helper.JSONResponse("success update campaign", "success", http.StatusOK, response.FormatCampaignResponse(*updatedCampaign))
 	ctx.JSON(http.StatusOK, response)
+}
+
+func (ch *campaignHandler) SaveCampaignImage(ctx *gin.Context) {
+	request := request.CreateCampaignImageRequest{}
+	err := ctx.ShouldBind(&request)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		response := helper.JSONResponse("bad request", "error", http.StatusBadRequest, gin.H{"errors": errors})
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		response := helper.JSONResponse("bad request", "error", http.StatusBadRequest, gin.H{"errors": err.Error()})
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	// currentUser from middleware authentication
+	getCurrentUser := ctx.MustGet("currentUser").(*model.User)
+	idUser := getCurrentUser.ID
+	chunkedId := strings.Split(idUser, "-")
+	pathImage := fmt.Sprintf("public/images/campaign/%s-%s.%s", chunkedId[0], file.Filename, filepath.Ext(file.Filename))
+	if err != nil {
+		response := helper.JSONResponse("failed to upload campaign image", "error", http.StatusInternalServerError, gin.H{"is_uploaded": false})
+		ctx.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	request.UserId = idUser
+	_, err = ch.campaignSvc.SaveCampaignImage(request, pathImage)
+	if err != nil {
+		response := helper.JSONResponse("failed to upload campaign image", "error", http.StatusInternalServerError, gin.H{"is_uploaded": false})
+		ctx.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	response := helper.JSONResponse("success upload campaign image", "success ", http.StatusOK, gin.H{"is_uploaded": true})
+	ctx.JSON(http.StatusOK, response)
+	return
 }

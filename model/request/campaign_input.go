@@ -14,3 +14,9 @@ type CreteaCampaingRequest struct {
 	GoalAmount       int    `json:"goal_amount" binding:"required"`
 	User             model.User
 }
+
+type CreateCampaignImageRequest struct {
+	CampaignId string `form:"campaign_id" binding:"required"`
+	IsPrimary  bool   `form:"is_primary"`
+	UserId     string
+}

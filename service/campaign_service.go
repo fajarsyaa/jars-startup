@@ -18,6 +18,7 @@ type CampaignService interface {
 	GetCampaignDetailById(request request.GetCampaignDetailRequest) (*model.Campaign, error)
 	CreateCampaign(request request.CreteaCampaingRequest) (*model.Campaign, error)
 	UpdateCampaign(ID request.GetCampaignDetailRequest, request request.CreteaCampaingRequest) (*model.Campaign, error)
+	SaveCampaignImage(request request.CreateCampaignImageRequest, pathFile string) (*model.CampaignImage, error)
 }
 
 type campaignService struct {
@@ -102,4 +103,37 @@ func (cs *campaignService) UpdateCampaign(ID request.GetCampaignDetailRequest, r
 	}
 
 	return updatedCampaign, nil
+}
+
+func (cs *campaignService) SaveCampaignImage(request request.CreateCampaignImageRequest, pathFile string) (*model.CampaignImage, error) {
+	campaign, err := cs.campaignRepo.FindById(request.CampaignId)
+	if err != nil {
+		return nil, err
+	}
+
+	if campaign.UserId != request.UserId {
+		return nil, errors.New("you not own this campaign")
+	}
+
+	if request.IsPrimary {
+		_, err := cs.campaignRepo.ChangesMarkAllImageToNonPrimary(request.CampaignId)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	campaignImage := model.CampaignImage{
+		ID:         uuid.New().String(),
+		CampaignID: request.CampaignId,
+		FileName:   pathFile,
+		IsPrimary:  request.IsPrimary,
+		CreatedAt:  time.Now(),
+	}
+
+	newCampaignImage, err := cs.campaignRepo.CreateCampaignImage(campaignImage)
+	if err != nil {
+		return nil, err
+	}
+
+	return newCampaignImage, nil
 }

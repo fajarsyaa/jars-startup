@@ -12,6 +12,8 @@ type CampaignRepository interface {
 	FindById(Id string) (*model.Campaign, error)
 	Create(campaign model.Campaign) (*model.Campaign, error)
 	Update(campaign model.Campaign) (*model.Campaign, error)
+	CreateCampaignImage(campaignImages model.CampaignImage) (*model.CampaignImage, error)
+	ChangesMarkAllImageToNonPrimary(campaignID string) (bool, error)
 }
 
 type campaignRepository struct {
@@ -73,4 +75,24 @@ func (cr *campaignRepository) Update(campaign model.Campaign) (*model.Campaign, 
 	}
 
 	return &campaign, nil
+}
+
+func (cr *campaignRepository) CreateCampaignImage(campaignImages model.CampaignImage) (*model.CampaignImage, error) {
+	err := cr.db.Create(&campaignImages).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &campaignImages, nil
+}
+
+func (cr *campaignRepository) ChangesMarkAllImageToNonPrimary(campaignID string) (bool, error) {
+
+	// update campaign images yang campaign_id nya = xxx, ubah kolom is_primary menjadi false
+	err := cr.db.Model(&model.CampaignImage{}).Where("campaign_id = ?", campaignID).Update("is_primary", false).Error
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

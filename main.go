@@ -25,12 +25,15 @@ func main() {
 
 	repoUser := repository.NewUserRepository(db)
 	repoCampaign := repository.NewCampaignRepository(db)
+	trxRepo := repository.NewTransactionRepository(db)
 
 	svcUser := service.NewUserService(repoUser, jwtToken)
 	svcCampaign := service.NewCampaignService(repoCampaign)
+	svcTrx := service.NewTransactionService(trxRepo, repoCampaign)
 
 	handlerUser := handler.NewUserHandler(svcUser)
 	handlerCampaign := handler.NewCampaignHandler(svcCampaign)
+	handlerTransaction := handler.NewTransactionHandler(svcTrx)
 
 	app := gin.Default()
 
@@ -46,6 +49,8 @@ func main() {
 	UrlPrefix.GET("/campaign/:id", handlerCampaign.GetCampaignDetail)
 	UrlPrefix.POST("/campaign", middleware.Authorization(jwtToken, svcUser), handlerCampaign.CreateCampaign)
 	UrlPrefix.PUT("/campaign/:id", middleware.Authorization(jwtToken, svcUser), handlerCampaign.UpdateCampaign)
+	UrlPrefix.POST("/campaign-images", middleware.Authorization(jwtToken, svcUser), handlerCampaign.SaveCampaignImage)
+	UrlPrefix.GET("/campaign/:id/transactions", middleware.Authorization(jwtToken, svcUser), handlerTransaction.GetCampaignTransactions)
 
 	app.Run()
 }
